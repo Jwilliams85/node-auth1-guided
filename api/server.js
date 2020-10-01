@@ -6,7 +6,7 @@ const bcryptjs = require('bcryptjs');
 
 const usersRouter = require("../users/users-router.js");
 const { default: xPoweredBy } = require("helmet/dist/middlewares/x-powered-by");
-
+const authRouter = require("../auth/auth-router.js")
 const server = express();
 
 server.use(helmet());
@@ -14,6 +14,7 @@ server.use(express.json());
 server.use(cors());
 
 server.use("/api/users", usersRouter);
+server.use("/api/auth", authRouter)
 
 server.get("/", (req, res) => {
   res.json({ api: "up" });
@@ -27,7 +28,7 @@ const secret = req.headers.secret;
 const hash = hashString(secret)
 
 if (password === 'mellon') {
-  res.json({welcome: 'friend', secret: req.headers.secret, hash})
+  res.json({welcome: 'friend', secret, hash})
 }else {
   res.status(401).json({ you: "cannot pass!"})
 
@@ -38,12 +39,11 @@ if (password === 'mellon') {
 function hashString(str) {
   //use bcrypt to hash the str argument and return the hash
   //look up bcryptjs
-  const hash = bcryptjs.hashSync(str, 8) //2 to the power 8 is the number of times a new hash will come back//the bigger the number the better but also the slower
+   const rounds = process.env.HASH_ROUNDS || 4;
+  const hash = bcryptjs.hashSync(str, rounds) //2 to the power 8 is the number of times a new hash will come back//the bigger the number the better but also the slower
 
   return hash;
 }
 
-//$2a$08$fPMtofXOcr.9EdOfG4uAZuYVbhlEwftxUQ/wcMpYrZMNHSlMxH0Ae
-//$2a$08$m8xklyrqOILkTVD/QAz2muK4JTm2nJpqVXwBBOv7xGwq3CIXHhznC
-//same password with the exact same parameters, with two different hashes
+
 module.exports = server;
